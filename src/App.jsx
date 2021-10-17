@@ -64,6 +64,22 @@ function App() {
     console.log(task)
   }
 
+  // To remove a task
+  const deleteTask = async (id) => {
+    try {
+
+      const db = firebase.firestore()
+      await db.collection('tasks').doc(id).delete()
+
+      const filteredArray = tasks.filter(item => item.id !== id)
+      setTasks(filteredArray)
+
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <div className="container mt-3">
       <h1 className="text-center">
@@ -81,8 +97,30 @@ function App() {
             {
               tasks.map(item => (
                 <li 
-                className="list-group-item"
-                key={item.id}>{item.name}</li>
+                  className="list-group-item"
+                  key={item.id}
+                  >
+                    <span className="lead">{item.name}</span>
+                      <button 
+                        className="btn btn-danger btn-sm float-end mx-2"
+                        onClick={() => deleteTask(item.id)}
+                      >
+                        <span className="text-uppercase">Delete</span>
+                        <span className="padding-icons">
+                          <i className="far fa-trash-alt"></i>
+                        </span>  
+                      </button>
+    
+                      <button 
+                        className="btn btn-warning btn-sm float-end"
+                        // onClick={() => editTask(item)}
+                      >
+                        <span className="text-uppercase">Edit</span>
+                        <span className="padding-icons">
+                          <i className="fas fa-pen"></i>
+                        </span> 
+                      </button>
+                </li>
               ))
             }
           </ul>
@@ -98,9 +136,13 @@ function App() {
             value={task}/>
             <div className="d-grid gap-2">
               <button 
-              className="btn btn-dark"
-              type="submit">
-                Add
+                className="btn btn-dark"
+                type="submit"
+              >
+                  <span className="text-uppercase">Add</span>
+                    <span className="padding-icons">
+                      <i className="far fa-plus-square"></i>
+                  </span>
               </button>
               </div>
           </form>
