@@ -4,8 +4,13 @@ import {firebase} from './firebase'
 
 function App() {
 
+  // Get all Tasks
   const [tasks, setTasks] = useState([])
 
+  // Set a new task
+  const [task, setTask] = useState('')
+
+  //Get all task stored in Firebase Firestore
   useEffect(() => {
     
     const getData = async () => {
@@ -26,12 +31,52 @@ function App() {
     getData()
   }, [])
 
+
+  // To add a new task in the database
+  const addTask = async (e) => {
+    e.preventDefault()
+
+    if(!task.trim()){
+      console.log('empty field')
+      return
+    }
+
+    try {
+
+      const db = firebase.firestore()
+      const newTask = {
+        name: task,
+        date: Date.now()
+      }
+      const data = await db.collection('tasks').add(newTask)
+      // To create an array copy with the new data
+      setTasks([
+        ...tasks,
+        {...newTask, id: data.id}
+      ])
+      // To clean the input field
+      setTask('')
+    }
+    catch (error){
+      console.log(error)
+    }
+    
+    console.log(task)
+  }
+
   return (
     <div className="container mt-3">
-      <h1 className="text-center">My App</h1>
+      <h1 className="text-center">
+        <span className="text-success">C</span>
+        <span className="text-primary">R</span>
+        <span className="text-warning">U</span>
+        <span className="text-danger">D </span>
+        Simple App
+      </h1>
+      <hr />
       <div className="row">
-        <div className="col-md-6 col-xs-12">
-          <h2>My Tasks</h2>
+        <div className="col-md-8 col-xs-12">
+          <h4 className="text-center mt-3 mb-3">My Tasks</h4>
           <ul className="list-group">
             {
               tasks.map(item => (
@@ -42,8 +87,23 @@ function App() {
             }
           </ul>
         </div>
-        <div className="col-md-6 col-xs-12">
-          <h2>Form</h2>
+        <div className="col-md-4 col-xs-12">
+          <h4 className="text-center mt-3 mb-3">Form</h4>
+          <form onSubmit={addTask}>
+            <input
+            type="text"
+            placeholder="Add a new task"
+            className="form-control mb-2" 
+            onChange={(e) => setTask(e.target.value)}
+            value={task}/>
+            <div className="d-grid gap-2">
+              <button 
+              className="btn btn-dark"
+              type="submit">
+                Add
+              </button>
+              </div>
+          </form>
         </div>
       </div>
 
