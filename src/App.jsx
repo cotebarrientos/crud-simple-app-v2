@@ -10,6 +10,12 @@ function App() {
   // Set a new task
   const [task, setTask] = useState('')
 
+  // Set editing a task mode
+  const [editingMode, setEditingMode] = useState(false)
+
+  // Get Id
+  const [id, setId] = useState('')
+
   //Get all task stored in Firebase Firestore
   useEffect(() => {
     
@@ -64,7 +70,7 @@ function App() {
     console.log(task)
   }
 
-  // To remove a task
+  // To remove a task from the database
   const deleteTask = async (id) => {
     try {
 
@@ -80,6 +86,40 @@ function App() {
     }
   }
 
+  // To activate the editing Mode
+  const activateEditingTaskMode = (item) => {
+    setEditingMode(true)
+    setTask(item.name)
+    setId(item.id)
+  }
+
+  // To edit a selected task
+  const editTask = async (e) => {
+    e.preventDefault()
+    if(!task.trim()){
+      return
+    }
+    try {
+
+      const db = firebase.firestore()
+      await db.collection('tasks').doc(id).update({
+        name: task
+      })
+
+      const editedArray = tasks.map(item => (
+        item.id === id ? {id: item.id, date: item.date, name: task} : item
+      ))
+      setTasks(editedArray)
+      setEditingMode(false)
+      setTask('')
+      setId('')
+    }
+    catch (error) {
+      console.log(error)
+    }
+  }
+
+
   return (
     <div className="container mt-3">
       <h1 className="text-center">
@@ -88,6 +128,7 @@ function App() {
         <span className="text-warning">U</span>
         <span className="text-danger">D </span>
         Simple App
+        <i className="fas fa-clipboard-list padding-icons text-secondary"></i>
       </h1>
       <hr />
       <div className="row">
@@ -95,6 +136,15 @@ function App() {
           <h4 className="text-center mt-3 mb-3">My Tasks</h4>
           <ul className="list-group">
             {
+
+              tasks.length === 0 ? (
+                <li className="list-group-item">
+                  <span className="lead">Sorry, no items yet</span>
+                  <span className="padding-icons">
+                  <i className="far fa-frown"></i>
+                  </span>
+                </li>
+              ) : (
               tasks.map(item => (
                 <li 
                   className="list-group-item"
@@ -113,7 +163,7 @@ function App() {
     
                       <button 
                         className="btn btn-warning btn-sm float-end"
-                        // onClick={() => editTask(item)}
+                        onClick={() => activateEditingTaskMode(item)}
                       >
                         <span className="text-uppercase">Edit</span>
                         <span className="padding-icons">
@@ -122,12 +172,17 @@ function App() {
                       </button>
                 </li>
               ))
+              )
             }
           </ul>
         </div>
         <div className="col-md-4 col-xs-12">
-          <h4 className="text-center mt-3 mb-3">Form</h4>
-          <form onSubmit={addTask}>
+          <h4 className="text-center mt-3 mb-3">
+            {
+              editingMode ? "Edit a task" : "Add a task"
+            }
+          </h4>
+          <form onSubmit={editingMode ? editTask : addTask}>
             <input
             type="text"
             placeholder="Add a new task"
@@ -136,12 +191,20 @@ function App() {
             value={task}/>
             <div className="d-grid gap-2">
               <button 
-                className="btn btn-dark"
+                className={
+                  editingMode ? "btn btn-warning" : "btn btn-dark"
+                }
                 type="submit"
               >
-                  <span className="text-uppercase">Add</span>
-                    <span className="padding-icons">
-                      <i className="far fa-plus-square"></i>
+                  <span className="text-uppercase">
+                  {
+                    editingMode ? "edit" : "Add"
+                  }
+                  </span>
+                  <span className="padding-icons">
+                      <i className={
+                        editingMode ? "fas fa-edit" : "far fa-plus-square"
+                      }></i>
                   </span>
               </button>
               </div>
